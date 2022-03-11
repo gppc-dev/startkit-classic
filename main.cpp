@@ -51,11 +51,18 @@ double octaile_dist(const xyLoc& a, const xyLoc& b) {
   return res;
 }
 
+double euclidean_dist(const xyLoc& a, const xyLoc& b) {
+  int dx = b.x - a.x;
+  int dy = b.y - a.y;
+  double res = sqrt(dx*dx + dy*dy);
+  return res;
+}
+
 double GetPathLength(const vector<xyLoc>& path)
 {
   double len = 0;
   for (int x = 0; x < (int)path.size()-1; x++)
-    len += octaile_dist(path[x], path[x+1]);
+    len += euclidean_dist(path[x], path[x+1]);
   return len;
 }
 
@@ -159,6 +166,7 @@ int main(int argc, char **argv)
     exit(1);
   }
 
+  // in mapData, 1: traversable, 0: obstacle
   LoadMap(mapfile.c_str(), mapData, width, height);
   datafile = index_dir + "/" + GetName() + "-" + basename(mapfile);
 

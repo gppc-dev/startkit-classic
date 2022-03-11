@@ -1,19 +1,19 @@
 #include <algorithm>
 #include <map>
-#include "Astar.h"
+#include "ThetaStar.h"
 #include "Entry.h"
 
 
 void PreprocessMap(vector<bool> &bits, int width, int height, const string filename) {}
 
 void *PrepareForSearch(vector<bool> &bits, int width, int height, const string filename) {
-  Astar* astar = new Astar(&bits, width, height);
+  ThetaStar* astar = new ThetaStar(&bits, width, height);
   return astar;
 }
 
 bool GetPath(void *data, xyLoc s, xyLoc g, vector<xyLoc> &path) {
 
-  Astar* astar = (Astar*)(data);
+  ThetaStar* astar = (ThetaStar*)(data);
   int16_t w = astar->width;
 
   vector<int> pa(astar->bits->size(), -1);
@@ -32,4 +32,4 @@ bool GetPath(void *data, xyLoc s, xyLoc g, vector<xyLoc> &path) {
   return true;
 }
 
-const string GetName() { return "example-A*"; }
+const string GetName() { return "example-Theta*"; }
