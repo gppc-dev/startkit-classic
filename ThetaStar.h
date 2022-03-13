@@ -1,7 +1,9 @@
 #pragma once
 #include <cstdio>
+#include <iostream>
 #include <limits>
 #include <queue>
+#include <string>
 #include <vector>
 #include <math.h>
 #include <map>
@@ -33,6 +35,11 @@ struct Node {
   bool operator< (const Node& rhs) const {
     if (f() == rhs.f()) return g > rhs.g;
     else return f() > rhs.f();
+  }
+
+  string to_str() {
+    return "(" + to_string(x) + ", " + to_string(y) + 
+      ") f:" + to_string(g+h) + " g:" + to_string(g) + ", h: " + to_string(h); 
   }
 };
 
@@ -71,16 +78,16 @@ current point is `(x, y)`
     // and the region must be "emptyLoc"
     switch (d) {
       case NORTH:
-        if (emptyLoc(x-1, y-1) && emptyLoc(x, y-1)) return true;
+        if (emptyLoc(x-1, y-1) || emptyLoc(x, y-1)) return true;
         break;
       case SOUTH:
-        if (emptyLoc(x-1, y) && emptyLoc(x, y)) return true;
+        if (emptyLoc(x-1, y) || emptyLoc(x, y)) return true;
         break;
       case WEST:
-        if (emptyLoc(x-1, y-1) && emptyLoc(x, y)) return true;
+        if (emptyLoc(x-1, y-1) || emptyLoc(x-1, y)) return true;
         break;
       case EAST:
-        if (emptyLoc(x-1, y-1) && emptyLoc(x, y-1)) return true;
+        if (emptyLoc(x, y-1) || emptyLoc(x, y)) return true;
         break;
       case NORTHWEST:
         if (emptyLoc(x-1, y-1) && emptyPoint(x, y)) return true;
@@ -143,25 +150,45 @@ current point is `(x, y)`
   }
 
   bool visible(int px, int py, int cx, int cy) {
+    // check visibility from (px, py) to (cx, cy)
     int dx = cx - px;
     int dy = cy - py;
-    // parent to current is following cardinal or diagonal moves.
-    if (dx == 0 || dy == 0 || abs(dx) == abs(dy)) return true;
-    double r;
-    r = (double)dy / (double)dx;
-    for (int i=1; i<abs(dx); i++) {
-      int x = px + i*dx;
-      int yl = floor((double)py + (double)(i*r));
-      int yu = ceil((double)py + (double)(i*r));
-      if (!segYvisible(x, yl, yu)) return false;
+    // it is possible moving back and forth since no pruning
+    if (dx == 0 && dy == 0) return false;
+    const double eps = 1e-6;
+    if (dx == 0) {
+      int fromY = dy>0?py: py-1;
+      int toY = dy>0?cy-1: cy;
+      dy /= abs(cy-py);
+      for (int y=fromY; y != toY+dy; y+=dy) {
+        if ((!emptyLoc(px-1, y) && !emptyLoc(px, y))) return false;
+      }
     }
-
-    r = (double)dx / (double)dy;
-    for (int i=1; i<abs(dy); i++) {
-      int y = py + i*dy;
-      int xl = floor((double)px + (double)(i*r));
-      int xu = ceil((double)px + (double)(i*r));
-      if (!segXvisible(y, xl, xu)) return false;
+    else if (dy == 0) {
+      int fromX = dx>0?px: px-1;
+      int toX = dx>0?cx-1: cx;
+      dx /= abs(cx-px);
+      for (int x=fromX; x != toX+dx; x+=dx) {
+        if ((!emptyLoc(x, py-1) && !emptyLoc(x, py))) return false;
+      }
+    }
+    else {
+      int x0, y0, x1, y1;
+      if (px < cx) {x0 = px, y0 = py, x1 = cx, y1 = cy;}
+      else {x0 = cx, y0 = cy, x1 = px, y1 = py;}
+      double r = (double)(y1 - y0) / (x1 - x0);
+      int dx = (x1 - x0) / abs(x1 - x0);
+      int dy = (y1 - y0) / abs(y1 - y0);
+      auto f = [&](double x) {
+        return r*x-r*x0+y0;
+      };
+      for (int x=x0; x<x1; x++) {
+        int fromY = (int)floor(f((double)x+eps));
+        int toY = (int)floor(f((double)x+1-eps));
+        for (int y=fromY; y!=toY+dy; y+=dy) {
+          if (!emptyLoc(x, y)) return false;
+        }
+      }
     }
     return true;
   }
@@ -194,6 +221,8 @@ current point is `(x, y)`
     while (!q.empty()) {
       Node c = q.top(); q.pop();
       if (c.g != dist[id(c)]) continue;
+      // cerr << "Pop out node: " << c.to_str() << " parent: ("
+      //      << pa[id(c)] % width << ", " << pa[id(c)] / width << ")" << endl;
       if (c.x == g.x && c.y == g.y) return c.g;
       for (int i=0; i<8; i++) 
       if (validMove(c.x, c.y, (dir)(1<<i))) {
@@ -208,6 +237,7 @@ current point is `(x, y)`
             dist[id({x, y})] = nxt.g;
             pa[id({x, y})] = pid;
             nxt.h = hVal(nxt, g);
+            // cerr << "Push node: " << nxt.to_str() << endl;
             q.push(nxt);
           }
         }

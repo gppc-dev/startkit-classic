@@ -178,11 +178,11 @@ int main(int argc, char **argv)
 
   void *reference = PrepareForSearch(mapData, width, height, datafile);
 
-	char argument[256];
-	sprintf(argument, "pmap -x %d | tail -n 1 > run.info", getpid());
+  char argument[256];
+  sprintf(argument, "pmap -x %d | tail -n 1 > run.info", getpid());
   system(argument);
   RunExperiment(reference);
-	sprintf(argument, "pmap -x %d | tail -n 1 >> run.info", getpid());
+  sprintf(argument, "pmap -x %d | tail -n 1 >> run.info", getpid());
   system(argument);
   return 0;
 }
