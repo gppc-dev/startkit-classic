@@ -1,5 +1,13 @@
 # Grid-Based Path Finding Competition Starter Kit
 
+## TLDR
+
+* Participants push commits to their repositories and the server will pull, compile, run and evaluate the current head of the main branch.
+
+  * participants can add new repo via our web interface 
+  * participants must specify their dependency in `apt.txt` (we provide a sample in `startkit`)
+  * server will build a docker image to compile, run and evaluate submissions
+
 ## About the competition.
 
 The Grid-Based Path Planning Competition (GPPC), begun in 2012, provide a meaningful comparison between many Path Planning approaches that was previously unavilable. 
@@ -29,50 +37,63 @@ $ git push contest_server
 ```
 Finally click "Evaluate my codes" button on the competition website!
 
-# TLDR
-
-* Participants push commits to their repositories and the server will pull, compile, run and evaluate the current head of the main branch.
-
-  * participants can add new repo via our web interface 
-  * participants must specify their dependency in `apt.txt` (we provide a sample in `startkit`)
-  * server will build a docker image to compile, run and evaluate submissions
-
-# Problem statement
+# Problem statement: any-angle setting
 Your task is to find a path on a given graph, and the solution is evaluated based on optimality, time performance and space cost.
 
-## Definition: Graph
-The input graph is an 8-connected grid map, i.e. each cell (`c`) has 8 adjacent neighbors:
+We use following concept and notations in this document.
 
-```
-123
-8c4
-765
-```
-the distance to cardinal neighbors (`2,4,6,8`) is 1, the distance to diagonal neighbors (`1,3,5,7`) is `1.4141` (approximated `sqrt(2)`).
+* term *location `(x, y)`* means the location in **char-map** from input, (non-traversable: `location(x, y)=0`, traversable: `location(x, y)=1`)
+* term *point `(x, y)`* means a point in **euclidean plane**
 
-Each cell is either traversable or obstacle, **corner cutting is not allowed** , for example:
-```
-c..
-.b.
-a#.
-```
-`#` is an obstacle, `a,b,c` and `.` are traversable cells; `c` to `b` is a valid diagonal move while `a` to `b` is not.
+## Map
+Instead of using polygons, the map is represented by characters.
 
-## Definition: Path
+  1. the input map is a `h*w` char map, i.e. the map is represented by `h` row strings, each row has `w` characters;
 
-For a query `(s, t)`, a valid path is a sequence of nodes `p=(s,v1,...vn,t)`, any adjacent nodes `(a, b)`on the path must be a **valid segment**, i.e. all moves from `a` to `b` must be in same direction, for example:
+  2. traversable char (e.g. `.`) at location `(x, y)` (row y, column x) means `[x, x+1] * [y, y+1]` area in euclidean plane is traversable
 
-```
-  01234567
-0 ...b.d..
-1 ........
-2 ...c#...
-3 a.......
-```
+  3. non-traversable chars (`SWT@O`) at location `(x, y)` means `(x, x+1) * (y, y+1)` area in plane is non-traversable
+ 
 
-* from `a` to `b` needs 3 diagonal moves (`Northeast`), so `(a, b)` is a valid segment;
-* from `a` to `c` needs 1 diagonal move (`Northeast`) and 2 cardinal moves (`East`), so `(a, c)` is not a valid segment;
-* from `c` to `d`, the first diagonal move from `c` is forbidden due to the **no corner-cutting** rule, so `(c, d)` is not a valid segment;
+## No Double Corner Cutting
+
+* point `(x, y)` is non-traversable if both diagonal quadrants are non-traversable, e.g.
+
+  * In euclidean plane
+    ```
+      |##       ##| (x, y)
+      |##       ##|↙
+    --+--   or  --+--
+    ##| ↖         |##
+    ##| (x,y)     |##
+    ```
+  * In char-map
+    ```
+      #.      .#
+      .#  or  #.
+    ```
+
+## Agent
+
+  1. agent at `(x, y)` is a point in euclidean plane
+
+  2. agent start and target position cannot be a top-left corner of an obstacle area, i.e. `location(x, y)=0`
+
+  3. agent cannot pass through double-cutting corner; when agent start or target is a double-cutting corner,
+  **the only case is**:
+    ```
+    Start or Target is (x, y)
+    Euclidean plane             corresponding char-map
+                  |######
+            (x, y)|######
+                 ↘|######
+             -----+-----> EAST         .#
+             #####|+ <- (x', y')       #.<----  y
+             #####|                     ↑
+             #####v                     x
+                SOUTH
+    ```
+    * then outgoing / incoming direction must between `EAST` and `SOUTH`, i.e. shifting point `(x, y)` to `(x', y')` in `SOUTHEAST` with a small distance.
 
 **When start and target are same node, the path must be empty, the length must be `0`.**
 
