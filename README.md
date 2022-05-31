@@ -81,6 +81,7 @@ Instead of using polygons, the map is represented by characters.
 
   3. agent cannot pass through double-cutting corner; when agent start or target is a double-cutting corner,
   **the only case is**:
+  
     ```
     Start or Target is (x, y)
     Euclidean plane             corresponding char-map
@@ -93,6 +94,7 @@ Instead of using polygons, the map is represented by characters.
              #####v                     x
                 SOUTH
     ```
+    
     * then outgoing / incoming direction must between `EAST` and `SOUTH`, i.e. shifting point `(x, y)` to `(x', y')` in `SOUTHEAST` with a small distance.
 
 **When start and target are same node, the path must be empty, the length must be `0`.**
