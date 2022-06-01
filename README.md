@@ -59,7 +59,7 @@ Instead of using polygons, the map is represented by characters.
 
 * point `(x, y)` is non-traversable if both diagonal quadrants are non-traversable, e.g.
 
-  * In euclidean plane: ![corner cutting](figs/corner-cutting.png =250x125)
+  * In euclidean plane: <img src="./figs/corner-cutting.png" width="250" height="125">
   * In char-map
     ```
       .#      #.
@@ -70,10 +70,11 @@ Instead of using polygons, the map is represented by characters.
 
   1. agent at `(x, y)` is a point on the euclidean plane
 
-  2. agent start and target position is an intersection point - the top-left corner of an area that represented by the char-map, and it must be a traversable area, i.e. `location(x, y)=1` ![intersection](figs/intersection-example.png =100x100)
+  2. agent start and target position is an intersection point <img src="figs/intersection-example.png" height="100" width="100"> -- the top-left corner of an area that represented by the char-map, 
+  and it must be a traversable area, i.e. `location(x, y)=1`
 
   3. agent cannot pass through double-cutting corner; when agent start or target is a double-cutting corner,
-  **the only case is**: ![corner cutting st](figs/corner-cutting-case.png =100x100)
+  **the only case is**: <img src="figs/corner-cutting-case.png" height="100" width="100">
 
   * then outgoing / incoming direction must between `EAST` and `SOUTH`, i.e. shifting point `(x, y)` to `(x', y')` in `SOUTHEAST` with a small distance.
 
