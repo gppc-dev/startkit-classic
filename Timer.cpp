@@ -30,19 +30,12 @@
 
 Timer::Timer()
 {
-	elapsedTime = 0;
+	elapsedTime = duration::zero();
 }
 
 void Timer::StartTimer()
 {
-#ifdef OS_MAC
-	startTime = UpTime();
-#elif defined( TIMER_USE_CYCLE_COUNTER )
-	CycleCounter c;
-	startTime = c.count();
-#else
-	gettimeofday( &startTime, NULL );
-#endif
+	startTime = clock::now();
 }
 
 #ifdef linux
@@ -79,29 +72,19 @@ float Timer::getCPUSpeed()
 	return 0;
 }
 
+#else
+
+float Timer::getCPUSpeed()
+{
+	return 0;
+}
+
 #endif
 
-double Timer::EndTimer()
+Timer::duration Timer::EndTimer()
 {
-#ifdef OS_MAC
-	AbsoluteTime stopTime = UpTime();
-	Nanoseconds diff = AbsoluteDeltaToNanoseconds(stopTime, startTime);
-	uint64_t nanosecs = UnsignedWideToUInt64(diff);
-	//cout << nanosecs << " ns elapsed (" << (double)nanosecs/1000000.0 << " ms)" << endl;
-	return elapsedTime = (double)(nanosecs/1000000000.0);
-#elif defined( TIMER_USE_CYCLE_COUNTER )
-	Timer::CycleCounter c;
-	double diffTime = (double)(c.count() - startTime);
-	const static double ClocksPerSecond = getCPUSpeed() * 1000000.0;
-	elapsedTime = diffTime / ClocksPerSecond;
-	return elapsedTime;
-#else
-	struct timeval stopTime;
+	clock::time_point stopTime = clock::now();
 	
-	gettimeofday( &stopTime, NULL );
-	uint64_t microsecs = stopTime.tv_sec - startTime.tv_sec;
-	microsecs = microsecs * 1000000 + stopTime.tv_usec - startTime.tv_usec;
-	elapsedTime = (double)microsecs / 1000000.0;
+	elapsedTime = std::chrono::duration_cast<std::chrono::nanoseconds>(stopTime - startTime);
 	return elapsedTime;
-#endif
 }

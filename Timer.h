@@ -28,54 +28,17 @@
 
 #include <stdint.h>
 #include <fstream>
-#ifdef OS_MAC
-#include <Carbon/Carbon.h>
-#undef check
-#else
-#include <sys/time.h>
-#endif
-
-#ifndef OS_MAC
-//#define TIMER_USE_CYCLE_COUNTER
-#endif
+#include <chrono>
 
 class Timer {
-
-#if !defined( OS_MAC ) && defined( TIMER_USE_CYCLE_COUNTER )
-
-struct CycleCounter {
 public:
-	union {
-		uint64_t c8;
-		struct { uint32_t l, h; } c4;
-	} count_;
-	
-	void stamp() {
-#ifdef __i386__
-		__asm__ __volatile__ (".byte 0x0f,0x31" : "=a"(count_.c4.l),"=d"(count_.c4.h));
-#else
-		count_.c8 = 0;
-#endif    
-	}
-	
-	uint64_t count() const { return count_.c8; }
-	CycleCounter() { stamp(); }
-};
-
-#endif
-
+	typedef std::chrono::steady_clock clock;
+	typedef std::chrono::nanoseconds duration;
 
 private:
-#ifdef OS_MAC
-  AbsoluteTime startTime;
-#elif defined( TIMER_USE_CYCLE_COUNTER )
-  // clock_t startTime;
-  uint64_t startTime;
-#else
-  struct timeval startTime;
-#endif		
+	clock::time_point startTime;
 
-	double elapsedTime;
+	duration elapsedTime;
 
 	float getCPUSpeed();
 
@@ -84,8 +47,8 @@ public:
 	~Timer(){}
 
 	void StartTimer();
-	double EndTimer();
-	double GetElapsedTime(){return elapsedTime;}
+	duration EndTimer();
+	duration GetElapsedTime(){return elapsedTime;}
 
 };
 

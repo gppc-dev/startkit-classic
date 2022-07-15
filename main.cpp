@@ -85,7 +85,8 @@ void RunExperiment(void* data) {
     g.y = scen.GetNthExperiment(x).GetGoalY();
 
     thePath.clear();
-    double max_step = 0, tcost = 0, tcost20 = 0;
+    typedef Timer::duration dur;
+    dur max_step = dur::zero(), tcost = dur::zero(), tcost20 = dur::zero();
     bool done = false;
     int call_num = 0;
     do {
@@ -105,8 +106,8 @@ void RunExperiment(void* data) {
     fout << mapfile  << "," << scenfile       << ","
          << x        << "," << thePath.size() << ","
          << plen     << "," << ref_len        << ","
-         << tcost    << "," << tcost20        << "," 
-         << max_step << endl;
+         << tcost.count() << "," << tcost20.count() << "," 
+         << max_step.count() << endl;
 
     if (check) {
       printf("%d %d %d %d %d", s.x, s.y, g.x, g.y, (int)thePath.size());
