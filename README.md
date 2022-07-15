@@ -109,7 +109,7 @@ besides, you will have following generated files
 | `result.csv`  | stores query information, including time cost, path length, etc.      | no       |
 | `index_data/` | if your algorithm has precomputation, all produced data must be here  | yes      |
 
-We provide `A*` in c++ as an example.
+We provide `Theta*` in c++ as an example.
 
 For those who using other languages, you may not need to include `*.cpp` and `*.h` files in above table, but others are still required.
 Notice that `run` is a untracked file by default (see in `.gitignore`), if you put code in this file, make sure you also modify the `.gitignore`.
