@@ -101,7 +101,7 @@ void RunExperiment(void* data) {
     double ref_len = scen.GetNthExperiment(x).GetDistance();
 
 
-    fout << setprecision(5) << fixed;
+    fout << setprecision(9) << fixed;
     fout << mapfile  << "," << scenfile       << ","
          << x        << "," << thePath.size() << ","
          << plen     << "," << ref_len        << ","
