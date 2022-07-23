@@ -1,9 +1,9 @@
-CC       = g++
-CFLAGS   = -W -Wall -O3
-DEVFLAGS = -W -Wall -ggdb -O0
+CXX       = g++
+CXXFLAGS   = -W -Wall -O3 -std=c++14
+DEVFLAGS = -W -Wall -ggdb -O0 -std=c++14
 EXEC     = run
 
 all:
-	$(CC) $(CFLAGS) -o $(EXEC) *.cpp
+	$(CXX) $(CXXFLAGS) -o $(EXEC) *.cpp
 dev:
-	$(CC) $(DEVFLAGS) -o $(EXEC) *.cpp
+	$(CXX) $(DEVFLAGS) -o $(EXEC) *.cpp
