@@ -1,0 +1,24 @@
+\tikzstyle{jp}=[circle,fill=blue!40, inner sep=0pt, minimum size=4mm]
+\matrix[coord matrix](m){
+   &0&1&2&3&4&5&6&7\\
+  0& & & & & & & &\\
+  1& & & & & & & &\\
+  2& & & & & & & &\\
+  3& & & & & & & &\\
+};
+
+\newcommand{\drawexp} {
+  \node[jp] at (m-5-2) {$a$};
+  \node[jp] at (m-2-5) {$b$};
+  \node[jp] at (m-4-5) {$c$};
+  \node[jp] at (m-2-7) {$d$};
+  \draw[->, thick, shorten <= 5pt, shorten >= 5pt] (m-5-2.center) -- (m-2-5.center);
+  \draw[->, thick, red, dashed, shorten <= 5pt, shorten >= 5pt] (m-5-2.center) -- (m-4-5.center);
+  \draw[->, thick, shorten <= 5pt] (m-5-2.center) -- (m-5-4.center);
+  \draw[->, thick, shorten >= 5pt] (m-5-4.center) -- (m-4-5.center);
+  \draw[->, thick, red, dashed, shorten <= 5pt, shorten >= 5pt] (m-4-5.center) -- (m-2-7.center);
+  \draw[->, thick, shorten <= 5pt] (m-4-5.center) -- (m-3-5.center);
+  \draw[->, thick] (m-3-5.center) -- (m-2-6.center);
+  \draw[->, thick, shorten >= 5pt] (m-2-6.center) -- (m-2-7.center);
+  \node[fill=black, inner sep=0pt, fit=(m-4-6)(m-4-6)] {};
+}

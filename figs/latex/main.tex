@@ -1,0 +1,76 @@
+\documentclass{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{bibentry}
+\nobibliography*
+\usepackage{array}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage[algoruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{comment}
+\usepackage{amsmath, amssymb,amsthm}
+\usepackage[textsize=scriptsize,textwidth=1cm]{todonotes}
+\usepackage{booktabs}
+\usepackage{mathtools}
+\usepackage{adjustbox}
+\usepackage{cleveref}
+\usepackage{subfiles}
+
+% Switch the comments in the following to switch comments ON/OFF
+\newcommand{\hidecomments}[1]{#1}
+%\newcommand{\hidecomments}[1]{}
+
+% \usepackage{geometry}
+%  \geometry{
+%  a4paper,
+%  total={170mm,257mm},
+%  left=20mm,
+%  right=20mm,
+%  top=10mm,
+%  }
+
+
+\usepackage{tikz}
+\usetikzlibrary{patterns, matrix, fit, patterns, arrows, calc, positioning, backgrounds}
+
+\tikzset{coord matrix/.style={
+    matrix of nodes,
+    column sep=-\pgflinewidth, row sep=-\pgflinewidth,
+    nodes in empty cells,
+    row 1/.append style={nodes={draw=none}},
+    column 1/.append style={nodes={draw=none}},
+    nodes={draw,
+      minimum height=#1,
+      anchor=center,
+      text width=#1,
+      align=center,
+      inner sep=0pt
+    },
+  },
+  coord matrix/.default=0.8cm
+}
+
+\tikzset{square matrix/.style={
+    matrix of nodes,
+    column sep=-\pgflinewidth, row sep=-\pgflinewidth,
+    nodes in empty cells,
+    nodes={draw,
+      minimum height=#1,
+      anchor=center,
+      text width=#1,
+      align=center,
+      inner sep=0pt
+    },
+  },
+  square matrix/.default=0.8cm
+}
+
+% title
+\title{Report Title}
+\author{Author}
+
+\begin{document}
+\subfile{neigb.tex}
+\subfile{cornercut.tex}
+\subfile{exp.tex}
+\end{document}

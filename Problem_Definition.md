@@ -15,7 +15,6 @@ Instead of using polygons, the map is represented by characters.
 
   3. non-traversable chars (`SWT@O`) at location `(x, y)` means `(x, x+1) * (y, y+1)` area in plane is non-traversable
  
-
 ## No Double Corner Cutting
 
 * point `(x, y)` is non-traversable if both diagonal quadrants are non-traversable, e.g.
