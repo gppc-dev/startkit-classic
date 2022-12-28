@@ -4,7 +4,6 @@ FROM eggeek01/gppc2021:gppc2021-base
 RUN apt-get update
 RUN apt-get --yes --no-install-recommends install clang
 
-
 # Copy codes to target dir and set codes dir to be the working directory.
 # Then run compile.sh to compile codes.
 COPY ./. /GPPC2021/codes/
