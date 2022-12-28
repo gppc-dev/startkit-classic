@@ -2,7 +2,7 @@ FROM eggeek01/gppc2021:gppc2021-base
 
 # Dependicies Installation
 RUN apt-get update
-RUN apt-get --yes --no-install-recommends install build-essential, clang
+RUN apt-get --yes --no-install-recommends install make cmake build-essential libboost-all-dev
 
 
 # Copy codes to target dir and set codes dir to be the working directory.
