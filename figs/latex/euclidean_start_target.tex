@@ -1,0 +1,29 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+\begin{tikzpicture}
+
+\matrix[square matrix,column 1/.style={}](m){
+      &   &   \\
+      &   &   \\
+      &   &   \\
+};
+\node[fill=black, inner sep=0pt, fit=(m-1-2)(m-1-2)] {};
+\tikzstyle{t}=[circle,fill=blue!40, inner sep=0pt, minimum size=1.5mm]
+\tikzstyle{nt}=[circle,fill=red, inner sep=0pt, minimum size=1.5mm]
+
+\foreach \x in {-1.2,-0.4,0.4}
+      \foreach \y in {-0.4,0.4,1.2}
+            \node[t] at (\x,\y) {};
+
+\foreach \x in {-1.2,-0.4,0.4, 1.2}
+      \node[nt] at (\x,-1.2) {};
+
+\foreach \y in {-1.2,-0.4,0.4, 1.2}
+      \node[nt] at (1.2,\y) {};
+
+\node[nt] at (-0.4,1.2) {};
+
+
+\end{tikzpicture}
+\end{document}
+
