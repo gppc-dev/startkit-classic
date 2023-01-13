@@ -48,11 +48,13 @@ For a query `(s, t)`, a valid path is a sequence of **Integer Coordinates** `p=(
 For any given two adjacent coordinates `a` and `b` in a path, where the agent moves from position `a` to position `b`, the following constraints must be followed in general:
   
 The straight line path segment defined by `a` and `b`, must not traverse through:
-1. Any non-traversable area, excluding the boundaries and corners of the area.
+1. Any blocked grid cell square (non-traversable area), excluding the boundaries and corners of the square.
 
-2. Any boundary of a non-traversable area that is also the boundary of an adjacent non-traversable area.
+2. Any boundary that is shared by two adjacent blocked grid cell squares, where multiple adjacent blocked grid cell squares form a large non-traversable area.
 
-3. Any corner of a non-traversable area that is also the corner of a diagonal adjacent non-traversable area (No Double Corner Cutting).
+3. Any square corner shared by two diagonal adjacent blocked grid cell squares (No Double Corner Cutting).
+
+4. Any boundary of a blocked grid cell square that is also the boundary of the map.
 
 In the following example, path segment `(a, b)` is invalid if `b` is located on red circles, and is valid if `b` is located on blue cicles:
   <p align="center">
