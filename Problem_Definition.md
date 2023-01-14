@@ -1,5 +1,5 @@
 # Problem statement: any-angle setting
-Your task is to find a path on a euclidean plane represented by characters, and the solution is evaluated based on optimality, time performance and space cost.
+Your task is to find a path on a Euclidean plane represented by grid, and the solution is evaluated based on optimality, time performance and space cost.
 
 ## From Grid to Euclidean Plane
 Input grid format is specified at [MovingAI](https://movingai.com/benchmarks/formats.html).
