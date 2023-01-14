@@ -40,7 +40,7 @@ Euclidean palne:
 ## Path
 For a query `(s, t)`, a valid path is a sequence of **Integer Coordinates** `p=(s,v1,...vn,t)`, any two adjacent coordinates `a` and `b` on the path must be a **valid path segment** (see details in the next section).
 
-The following example shows a valid path, `[(0,0), (3,3), (3,4), (2,4), (1,3)]`, for query `[(0,0), (1,3)]`, 
+The following example shows a valid path, `[(0,0), (3,3), (3,4), (2,4), (1,3)]`, for query `[(0,0), (1,3)]`: 
   <p align="center">
     <img src="figs/grid_plane_path.png" height="200" > 
   </p>
