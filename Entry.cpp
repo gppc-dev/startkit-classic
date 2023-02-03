@@ -70,9 +70,9 @@ bool GetPath(void *data, xyLoc s, xyLoc g, vector<xyLoc> &path) {
   vector<int> pa(astar->bits->size(), -1);
   double d = astar->run(s.x, s.y, g.x, g.y, pa);
   if (d > 0) {
-    int16_t x = g.x, y = g.y;
+    int16_t x = static_cast<int16_t>(g.x), y = static_cast<int16_t>(g.y);
     while (true) {
-      path.push_back({x, y});
+      path.push_back({static_cast<double>(x), static_cast<double>(y)});
       if (x == s.x && y == s.y) break;
       int cid = y * w + x;
       x = pa[cid] % w;

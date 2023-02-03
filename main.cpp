@@ -10,6 +10,7 @@
 #include "ScenarioLoader.h"
 #include "Timer.h"
 #include "Entry.h"
+#include "validator/ValidatePath.hpp"
 
 using namespace std;
 
@@ -45,15 +46,15 @@ void LoadMap(const char *fname, vector<bool> &map, int &width, int &height)
 }
 
 double octaile_dist(const xyLoc& a, const xyLoc& b) {
-  int dx = abs(b.x - a.x);
-  int dy = abs(b.y - a.y);
+  double dx = abs(b.x - a.x);
+  double dy = abs(b.y - a.y);
   double res = min(dx, dy) * sqrt(2) + (dx + dy - 2 * min(dx, dy));
   return res;
 }
 
 double euclidean_dist(const xyLoc& a, const xyLoc& b) {
-  int dx = b.x - a.x;
-  int dy = b.y - a.y;
+  double dx = b.x - a.x;
+  double dy = b.y - a.y;
   double res = sqrt(dx*dx + dy*dy);
   return res;
 }
@@ -64,6 +65,12 @@ double GetPathLength(const vector<xyLoc>& path)
   for (int x = 0; x < (int)path.size()-1; x++)
     len += euclidean_dist(path[x], path[x+1]);
   return len;
+}
+
+// returns -1 if valid path, otherwise id of segment where invalidness was detetcted
+int ValidatePath(const vector<xyLoc>& thePath)
+{
+  return inx::ValidatePath(mapData, width, height, thePath);
 }
 
 void RunExperiment(void* data) {
@@ -110,9 +117,16 @@ void RunExperiment(void* data) {
          << max_step.count() << endl;
 
     if (check) {
-      printf("%d %d %d %d %d", s.x, s.y, g.x, g.y, (int)thePath.size());
+      printf("%f %f %f %f", s.x, s.y, g.x, g.y);
+      int validness = ValidatePath(thePath);
+      if (validness < 0) {
+        printf(" valid");
+      } else {
+        printf(" invalid-%d", validness);
+      }
+      printf(" %d", static_cast<int>(thePath.size()));
       for (const auto& it: thePath) {
-        printf(" %d %d", it.x, it.y);
+        printf(" %f %f", it.x, it.y);
       }
       printf(" %.5f\n", plen);
     }
