@@ -386,11 +386,12 @@ public:
 		}
 		// pre-check all points and then transform
 		for (int i = 0; i < S; ++i) {
-			if (P[i].isInteger()) { // is integer
+			bool good = true;
+			bool xInt = P[i].isIntegerX(), yInt = P[i].isIntegerY();
+			if (xInt && yInt) { // is integer
 				int32 x = static_cast<int32>(std::round(P[i].x));
 				int32 y = static_cast<int32>(std::round(P[i].y));
 				auto cell = (~m_grid.region<1,1,2,2>(x, y)) & 0b1111;
-				bool good = true;
 				switch (cell & 0b11) {
 				case 0b0000:
 					break;
@@ -453,9 +454,52 @@ public:
 							good = false;
 					}
 				}
-				if (!good) {
-					return i;
+			} else if (xInt || yInt) { // point lies of vertical divide
+				int32 x, y;
+				size_t cell;
+				if (xInt) { // x
+					x = static_cast<int32>(std::round(P[i].x));
+					y = static_cast<int32>(std::floor(P[i].y));
+					cell = (~m_grid.region<1,0,2,1>(x, y)) & 0b11;
+				} else { // y
+					int32 x = static_cast<int32>(std::floor(P[i].x));
+					int32 y = static_cast<int32>(std::round(P[i].y));
+					cell = (~m_grid.region<0,1,1,2>(x, y)) & 0b11;
 				}
+				// x
+				// 0 1
+				// y
+				// 1
+				// 0
+				switch (cell) {
+				case 0b11:
+					good = false;
+					break;
+				case 0b01:
+				case 0b10:
+				{
+					point wall = xInt ?
+						((cell & 0b01) ? point(0, -1) : point(0, 1)) :
+						((cell & 0b01) ? point(1, 0) : point(-1, 0));
+					for (int j = i-1; ; j += 2) {
+						if (static_cast<uint32>(j) < static_cast<uint32>(S)) {
+							point i2j = P[j] - P[i];
+							if (wall.isCW(i2j)) {
+								good = false;
+								break;
+							}
+						}
+						if (j > i)
+							break;
+					}
+				}
+					break;
+				default:
+					break;
+				}
+			}
+			if (!good) {
+				return i;
 			}
 		}
 		// visibility test for each line segment
