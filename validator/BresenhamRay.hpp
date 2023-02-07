@@ -464,8 +464,8 @@ public:
 					y = static_cast<int32>(std::floor(P[i].y));
 					cell = (~m_grid.region<1,0,2,1>(x, y)) & 0b11;
 				} else { // y
-					int32 x = static_cast<int32>(std::floor(P[i].x));
-					int32 y = static_cast<int32>(std::round(P[i].y));
+					x = static_cast<int32>(std::floor(P[i].x));
+					y = static_cast<int32>(std::round(P[i].y));
 					cell = (~m_grid.region<0,1,1,2>(x, y)) & 0b11;
 				}
 				// x
