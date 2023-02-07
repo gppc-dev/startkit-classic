@@ -392,6 +392,8 @@ public:
 				int32 x = static_cast<int32>(std::round(P[i].x));
 				int32 y = static_cast<int32>(std::round(P[i].y));
 				auto cell = (~m_grid.region<1,1,2,2>(x, y)) & 0b1111;
+				// 2 3
+				// 0 1
 				switch (cell & 0b11) {
 				case 0b0000:
 					break;
@@ -402,7 +404,10 @@ public:
 					// #.
 					// .#
 					if (i == 0 || i == S-1) { // start or target
-						good = false;
+						point st2adj = i == 0 ? P[1] - P[0] : P[i-1] - P[i];
+						if (st2adj.isBetweenCCW(point(1,0), point(0,1))) {
+							good = false;
+						}
 					} else {
 						point u2prev = P[i-1] - P[i];
 						point u2next = P[i+1] - P[i];
@@ -423,10 +428,7 @@ public:
 					// .#
 					// #.
 					if (i == 0 || i == S-1) { // start or target
-						point st2adj = i == 0 ? P[1] - P[0] : P[i-1] - P[i];
-						if (st2adj.isBetweenCCW(point(1,0), point(0,-1))) {
-							good = false;
-						}
+						good = false;
 					} else {
 						point u2prev = P[i-1] - P[i];
 						point u2next = P[i+1] - P[i];
