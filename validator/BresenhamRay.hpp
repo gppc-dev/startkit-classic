@@ -8,6 +8,8 @@
 
 namespace inx {
 
+constexpr double MIN_SEGMENT_LENGTH = 0.01;
+
 // how far behind long-axis should the line start
 struct BresenhamDblLine
 {
@@ -16,15 +18,18 @@ struct BresenhamDblLine
 	constexpr static double axis_eps = 1e-8;
 	constexpr static double axis_int_eps = 1e-6;
 
-	double axisProg;
-	double axisProgInc;
+	frac<int32> prog;
 	uint32 axis; // 0 = x, y = 1; represents longer axis
 	int32 axisMod;
 	int32 axisIMod;
-	frac<int32> prog;
-	crd pos;
-	point start;
-	point adj;
+	int32 startAxis;
+	double startAxisI;
+	double axisIscale;
+
+	static bool is_int(double v) noexcept
+	{
+		return std::abs(v - std::round(v)) < axis_int_eps;
+	}
 
 	/// @param a The starting point
 	/// @param ab The line segment
@@ -35,87 +40,56 @@ struct BresenhamDblLine
 		// setup axis and axis mod
 		if (std::abs(ab.y) < std::abs(ab.x)) {
 			axis = 0;
-			axisMod = ab.x < 0 ? -1 : 1;
-			std::swap(a.x, a.y);
-			std::swap(ab.x, ab.y);
 		} else {
 			axis = 1;
-			axisMod = ab.y < 0 ? -1 : 1;
 		}
-		assert(std::abs(ab.y) >= std::abs(ab.x) && std::abs(ab.y) > axis_eps);
-		prog.a = static_cast<int32>(adjStartUnits);
-		prog.b = static_cast<int32>(std::ceil(std::abs(ab.y)));
-		ab.x /= std::abs(ab.y);
-		ab.y = axisMod;
-		if (ab.x < -axis_eps)
-			axisIMod = -1;
-		else if (ab.x > axis_eps)
-			axisIMod = 1;
-		else
-			axisIMod = 0;
-		a += static_cast<double>(adjStartUnits) * ab;
-		// align to edge of axis
-		double axisF, axisI;
-		if (axisMod >= 0) {
-			axisF = std::floor(a.y);
-			assert(axisF <= a.y);
-			if (a.y - axisF > 1-axis_int_eps) {
-				axisF += 1;
-				axisI = a.x;
-			} else {
-				axisI = a.x - ab.x * (a.y - axisF);
-			}
-			pos[axis] = static_cast<int32>(axisF);
+		axisMod = ab[axis] < 0 ? -1 : 1;
+		axisIMod = ab[axis^1] < 0 ? -1 : 1;
+		// variable naming assumes axis = 0, thus x is major axis
+		assert(std::abs(ab[axis]) >= std::abs(ab[axis^1]) && std::abs(ab[axis]) > axis_eps);
+		bool Ix = is_int(a[axis]); // Ix/Iy are is integer
+		axisIscale = ab[axis^1] / std::abs(ab[axis]);
+		prog.a = static_cast<int32>(adjStartUnits) - (Ix ? 1 : 0);
+		if (axisMod > 0) {
+			startAxis = static_cast<int32>(std::floor(Ix ? a[axis] + 0.5 : a[axis]));
+			prog.b = std::abs(static_cast<int32>(std::ceil(a[axis] + ab[axis] + axis_int_eps)) - startAxis);
 		} else {
-			axisF = std::ceil(a.y);
-			assert(axisF >= a.y);
-			if (axisF - a.y > 1-axis_int_eps) {
-				axisF -= 1;
-				axisI = a.x;
-			} else {
-				axisI = a.x - ab.x * (axisF - a.y);
-			}
-			pos[axis] = static_cast<int32>(axisF)-1;
+			startAxis = static_cast<int32>(std::ceil(Ix ? a[axis] - 0.5 : a[axis]));
+			prog.b = std::abs(static_cast<int32>(std::floor(a[axis] + ab[axis] + axis_int_eps)) - startAxis);
 		}
-		start[axis] = axisF;
-		start[axis^1] = axisI;
-		adj[axis^1] = ab.x;
-		adj[axis] = ab.y;
-		double modp, modi;
-		modp = std::modf(axisI, &modi);
-		assert(axisI >= 0);
-		if (axisIMod > 0) {
-			if (modp < axis_eps) {
-				modi -= axisIMod;
-				axisProg = 1+modp;
-			} else if (modp > 1-axis_eps) {
-			//	modi -= axisIMod;
-				axisProg = modp;
-			} else {
-				axisProg = modp;
-			}
-			axisProgInc = ab.x;
-		} else if (axisIMod < 0) {
-			if (modp < axis_eps) {
-			//	modi -= axisIMod;
-				axisProg = 1 - modp;
-			} else if (modp > 1-axis_eps) {
-				modi -= axisIMod;
-				axisProg = modp;
-			} else {
-				axisProg = 1 - modp;
-			}
-			axisProgInc = -ab.x;
-		} else { // hori/vert line
-			if (modp > 1-axis_eps) {
-				modi += 1;
-			}
-			axisProg = 0.5;
-			axisProgInc = 0;
-		}
-		pos[axis^1] = static_cast<int32>(std::floor(modi));
+		startAxisI = a[axis^1] - axisIscale * std::abs(a[axis] - startAxis);
 	}
 
+	// returns coord drawn at cell start[axis]+i, second parameter [-1,1] to include cell above or below in axix^1
+	std::pair<crd, int32> getCoord(int32 i) noexcept
+	{
+		std::pair<crd, int32> result{crd::zero(), 0};
+		result.first[axis] = startAxis + i * axisMod;
+		double lineY = startAxisI + i * axisIscale;
+		if (is_int(lineY)) {
+			result.first[axis^1] = static_cast<int32>(std::floor(lineY-0.5));
+			result.second = 1;
+		} else {
+			result.first[axis^1] = static_cast<int32>(std::floor(lineY));
+			lineY += axisIscale;
+			if (is_int(lineY) || static_cast<int32>(std::floor(lineY)) != result.first[axis^1]) {
+				result.second = axisIMod;
+			}
+		}
+		return result;
+	}
+
+	operator bool() const noexcept
+	{
+		return prog.a < prog.b;
+	}
+
+	std::pair<crd, bool> getNextCoord() noexcept
+	{
+		return getCoord(prog.a++);
+	}
+
+#if 0
 	// increment one axis-sep
 	// if returns true, than pos[axis^1] += axisIMod
 	// afterwards, pos[axis] += axisMod
@@ -134,6 +108,7 @@ struct BresenhamDblLine
 	{
 		return axisProg < axis_eps;
 	}
+#endif
 
 	void make_ray() noexcept
 	{
@@ -142,81 +117,17 @@ struct BresenhamDblLine
 };
 
 template <typename BitTable, typename Function>
-void bres_ray_loop(BresenhamDblLine& line, BitTable& bt, Function&& fn)
+void bres_ray_loop(BresenhamDblLine& line, BitTable&, Function&& fn)
 {
-	// setup line detail
-	auto bitId = bt.bit_index(line.pos.x, line.pos.y);
-	// setup adjustment detail
-	int32 bitRowAdj = static_cast<int32>(bt.getRowWords());
-	int32 bitColAdj;
-	int32 bitColReset;
-	bool xpos = line.axisMod >= 0, ypos = line.axisIMod >= 0;
-	if (line.axis != 0)
-		std::swap(xpos, ypos);
-	if (xpos) {
-		bitColAdj = 1;
-		bitColReset = 0;
-	} else {
-		bitColAdj = -1;
-		bitColReset = BitTable::bit_id_end - BitTable::bit_id_step;
-	}
-	if (!ypos) {
-		bitRowAdj = -bitRowAdj;
-	}
-	// loop through
-	auto&& action = [&]() {
-		if (!bt.template bit_test<0>(bitId)) {
-			auto [x,y] = bt.index_get(bitId);
-			fn(x, y);
+	do {
+		auto [c,s] = line.getNextCoord();
+		fn(c.x, c.y);
+		if (s != 0) {
+			c[line.axis^1] += s;
+			fn(c.x, c.y);
 		}
-	};
-	if (line.axis == 0) {
-		// x-axis is longer
-		do {
-			action();
-			if (line.increment()) { // y-axis inc
-				if (line.intersection()) { // on corner, fill whole square
-					auto tmpBitId = bitId;
-					bitId.bit = static_cast<uint32>(static_cast<int32>(bitId.bit) + bitColAdj);
-					if (bitId.bit >= BitTable::bit_id_end) {
-						bitId.bit = bitColReset;
-						bitId.word = static_cast<uint32>(static_cast<int32>(bitId.word) + bitColAdj);
-					}
-					action();
-					bitId = tmpBitId;
-				}
-				bitId.word = static_cast<uint32>(static_cast<int32>(bitId.word) + bitRowAdj);
-				action();
-			}
-			bitId.bit = static_cast<uint32>(static_cast<int32>(bitId.bit) + bitColAdj);
-			if (bitId.bit >= BitTable::bit_id_end) {
-				bitId.bit = bitColReset;
-				bitId.word = static_cast<uint32>(static_cast<int32>(bitId.word) + bitColAdj);
-			}
-		}
-		while (++line.prog.a <= line.prog.b);
-	} else {
-		// y-axis is longer
-		do {
-			action();
-			if (line.increment()) { // y-axis inc
-				if (line.intersection()) { // on corner, fill whole square
-					auto tmpBitId = bitId;
-					bitId.word = static_cast<uint32>(static_cast<int32>(bitId.word) + bitRowAdj);
-					action();
-					bitId = tmpBitId;
-				}
-				bitId.bit = static_cast<uint32>(static_cast<int32>(bitId.bit) + bitColAdj);
-				if (bitId.bit >= BitTable::bit_id_end) {
-					bitId.bit = bitColReset;
-					bitId.word = static_cast<uint32>(static_cast<int32>(bitId.word) + bitColAdj);
-				}
-				action();
-			}
-			bitId.word = static_cast<uint32>(static_cast<int32>(bitId.word) + bitRowAdj);
-		}
-		while (++line.prog.a <= line.prog.b);
 	}
+	while (line);
 }
 
 class BresenhamRay
@@ -293,29 +204,29 @@ public:
 		return point(u.x, m_gridHeight - u.y);
 	}
 
-	int rayShoot(point u, point v)
+	int rayShoot(point u, point v, point uvN)
 	{
 		// not cached or ray not fired
 		point uv = v - u;
 		std::array<int, 2> cellSegments;
-		if (pr_op<PRop::gtZero>(uv.x)) {
-			if (pr_op<PRop::gtZero>(uv.y)) {
+		if (pr_op<PRop::gtZero>(uvN.x)) {
+			if (pr_op<PRop::gtZero>(uvN.y)) {
 				cellSegments = {3, 0};
-			} else if (pr_op<PRop::ltZero>(uv.y)) {
+			} else if (pr_op<PRop::ltZero>(uvN.y)) {
 				cellSegments = {0, 1};
 			} else {
 				cellSegments = {0, -1};
 			}
-		} else if (pr_op<PRop::ltZero>(uv.x)) {
-			if (pr_op<PRop::gtZero>(uv.y)) {
+		} else if (pr_op<PRop::ltZero>(uvN.x)) {
+			if (pr_op<PRop::gtZero>(uvN.y)) {
 				cellSegments = {2, 3};
-			} else if (pr_op<PRop::ltZero>(uv.y)) {
+			} else if (pr_op<PRop::ltZero>(uvN.y)) {
 				cellSegments = {1, 2};
 			} else {
 				cellSegments = {2, -1};
 			}
 		} else {
-			if (pr_op<PRop::gtZero>(uv.y)) {
+			if (pr_op<PRop::gtZero>(uvN.y)) {
 				cellSegments = {3, -1};
 			} else {
 				cellSegments = {1, -1};
@@ -324,35 +235,38 @@ public:
 
 		// do line-scan
 		BresenhamDblLine line;
-		line.setup(u, uv, -1);
-		line.prog.b += 1;
+		line.setup(u, uv, 0);
+		// line.prog.b += 1;
 		int res = -1; // <0 -> no intersection, =0 -> corner intersection, >0 -> cell intersection
-		bres_ray_loop(line, m_grid, [u,v,uv,&res,&line,&grid=m_grid,cellSegments] (int32 x, int32 y) {
+		bres_ray_loop(line, m_grid, [u,v,uv,uvN,&res,&line,&grid=std::as_const(m_grid),cellSegments] (int32 x, int32 y) {
 			point at(x, y);
+			if (is_point_on_segment(at, u, uv)) {
+				if (at == u || at == v) { // handled at line segment test section
+					return;
+				}
+				auto cell = (~grid.region<1,1,2,2>(x, y)) & 0b1111;
+				if (cell != 0) {
+					auto [p0, p1] = getAngle(cell);
+					if (p0.isZero() || uvN.isBetweenCW(p0, p1)) {
+						res = 1;
+						line.prog.b = -1;
+					}
+				}
+				return;
+			}
+			if (grid.bit_test<0>(x, y)) // not filled, stop checking
+				return;
 			box box_cell(at, at + point(1,1));
 			if (box_cell.strictly_within(u) || box_cell.strictly_within(v)) {
 				res = 1;
 				line.prog.b = -1;
 				return;
 			}
-			if (is_point_on_segment(at, u, uv)) {
-				if (at == u || at == v) { // handled at line segment test section
-					return;
-				}
-				auto cell = (~grid.region<1,1,2,2>(x, y)) & 0b1111;
-				auto [p0, p1] = getAngle(cell);
-				if (p0.isZero() || uv.isBetweenCW(p0, p1)) {
-					res = 1;
-					line.prog.b = -1;
-					return;
-				}
-				return;
-			}
 			auto [p0, p1] = box_cell.get_segment(cellSegments[0]);
 			auto p01 = p1 - p0;
 			// p1 = at
 			// u-v not collin with p1
-			if (p01.isCCW(u-p0) && p01.isCW(v-p0) && uv.isBetweenCCW(u, p0, p1)) {
+			if (p01.isCCW(u-p0) && p01.isCW(v-p0) && uvN.isBetweenCCW(u, p0, p1)) {
 				res = 1;
 				line.prog.b = -1;
 				return;
@@ -360,7 +274,7 @@ public:
 			if (cellSegments[1] >= 0) { // hori/vert line
 				auto p2 = box_cell.get_segment(cellSegments[1]).second;
 				auto p12 = p2 - p1;
-				if (p12.isCCW(u-p1) && p12.isCW(v-p1) && uv.isBetweenCCW(u, p1, p2)) {
+				if (p12.isCCW(u-p1) && p12.isCW(v-p1) && uvN.isBetweenCCW(u, p1, p2)) {
 					res = 1;
 					line.prog.b = -1;
 					return;
@@ -375,14 +289,23 @@ public:
 	template <typename Pts>
 	int validPath(const Pts& pts) {
 		int S = static_cast<int>(pts.size());
+		if (S == 0)
+			return -1;
 		box B(point(0,0), point(m_gridWidth, m_gridHeight));
-		std::vector<point> P;
 		P.resize(S);
+		Pnorm.resize(S-1);
 		// copy path to new point vector
 		for (int i = 0; i < S; ++i) {
 			P[i] = transform_point(point(pts[i].x, pts[i].y));
 			if (!B.within(P[i]))
 				return i;
+			if (i > 0) {
+				point norm = P[i] - P[i-1];
+				if (norm.square() < MIN_SEGMENT_LENGTH*MIN_SEGMENT_LENGTH-point::pos_epsilon()) {
+					return i-1;
+				}
+				Pnorm[i-1] = norm.normalise();
+			}
 		}
 		// pre-check all points and then transform
 		for (int i = 0; i < S; ++i) {
@@ -394,23 +317,44 @@ public:
 				auto cell = (~m_grid.region<1,1,2,2>(x, y)) & 0b1111;
 				// 2 3
 				// 0 1
-				switch (cell & 0b11) {
+				switch (cell) {
 				case 0b0000:
 					break;
 				case 0b1111:
 					good = false;
 					break;
-				case 0b0110:
+				case 0b1001:
 					// #.
 					// .#
 					if (i == 0 || i == S-1) { // start or target
-						point st2adj = i == 0 ? P[1] - P[0] : P[i-1] - P[i];
-						if (st2adj.isBetweenCCW(point(1,0), point(0,1))) {
+						point st2adj = i == 0 ? Pnorm.front() : -Pnorm.back();
+						if (st2adj.isBetweenCCW(point(1,0), point(0,-1))) {
 							good = false;
 						}
 					} else {
-						point u2prev = P[i-1] - P[i];
-						point u2next = P[i+1] - P[i];
+						point u2prev = -Pnorm[i-1];
+						point u2next = Pnorm[i];
+						if (!u2prev.isBetweenCCW(point(1,0), point(0,-1))) { // in SE quad
+							if (u2next.isBetweenCCW(point(1,0), point(0,-1))) { // not in SE quad
+								good = false;
+							}
+						} else if (!u2prev.isBetweenCCW(point(-1,0), point(0,1))) { // in NW quad
+							if (u2next.isBetweenCCW(point(-1,0), point(0,1))) { // not in NW quad
+								good = false;
+							}
+						} else {
+							good = false;
+						}
+					}
+					break;
+				case 0b0110:
+					// .#
+					// #.
+					if (i == 0 || i == S-1) { // start or target
+						good = false;
+					} else {
+						point u2prev = -Pnorm[i-1];
+						point u2next = Pnorm[i];
 						if (!u2prev.isBetweenCCW(point(0,1), point(1,0))) { // in NE quad
 							if (u2next.isBetweenCCW(point(0,1), point(1,0))) { // not in NE quad
 								good = false;
@@ -424,35 +368,14 @@ public:
 						}
 					}
 					break;
-				case 0b1001:
-					// .#
-					// #.
-					if (i == 0 || i == S-1) { // start or target
-						good = false;
-					} else {
-						point u2prev = P[i-1] - P[i];
-						point u2next = P[i+1] - P[i];
-						if (!u2prev.isBetweenCCW(point(1,0), point(0,-1))) { // in NE quad
-							if (u2next.isBetweenCCW(point(1,0), point(0,-1))) { // not in NE quad
-								good = false;
-							}
-						} else if (!u2prev.isBetweenCCW(point(-1,0), point(0,1))) { // in SW quad
-							if (u2next.isBetweenCCW(point(-1,0), point(0,1))) { // not in SW quad
-								good = false;
-							}
-						} else {
-							good = false;
-						}
-					}
-					break;
 				default:
 					auto [p0,p1] = getAngle(cell);
 					if (i != S-1) {
-						if ((P[i+1] - P[i]).isBetweenCW(p0, p1))
+						if ((Pnorm[i]).isBetweenCW(p0, p1))
 							good = false;
 					}
 					if (i != 0) {
-						if ((P[i-1] - P[i]).isBetweenCW(p0, p1))
+						if ((-Pnorm[i-1]).isBetweenCW(p0, p1))
 							good = false;
 					}
 				}
@@ -485,7 +408,7 @@ public:
 						((cell & 0b01) ? point(1, 0) : point(-1, 0));
 					for (int j = i-1; ; j += 2) {
 						if (static_cast<uint32>(j) < static_cast<uint32>(S)) {
-							point i2j = P[j] - P[i];
+							point i2j = j < i ? -Pnorm[i-1] : Pnorm[i];
 							if (wall.isCW(i2j)) {
 								good = false;
 								break;
@@ -506,7 +429,7 @@ public:
 		}
 		// visibility test for each line segment
 		for (int i = 0; i < S-1; ++i) {
-			if (rayShoot(P[i], P[i+1]) >= 0) {
+			if (rayShoot(P[i], P[i+1], Pnorm[i]) >= 0) {
 				return i;
 			}
 		}
@@ -516,6 +439,8 @@ public:
 private:
 	double m_gridHeight, m_gridWidth;
 	bit_table<1, Padding> m_grid;
+	std::vector<point> P;
+	std::vector<point> Pnorm;
 };
 
 } // namespace inx

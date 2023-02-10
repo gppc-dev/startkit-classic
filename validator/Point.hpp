@@ -147,9 +147,7 @@ struct alignas(details::PointAlign<CoordType>) Point
 		if constexpr (is_integral()) {
 			return true;
 		} else {
-			coord_type f, i;
-			f = std::modf(x, &i);
-			return std::abs(f) < pos_epsilon();
+			return std::abs(x - std::round(x)) < pos_epsilon();
 		}
 	}
 	bool isIntegerY() const noexcept
@@ -157,9 +155,7 @@ struct alignas(details::PointAlign<CoordType>) Point
 		if constexpr (is_integral()) {
 			return true;
 		} else {
-			coord_type f, i;
-			f = std::modf(y, &i);
-			return std::abs(f) < pos_epsilon();
+			return std::abs(y - std::round(y)) < pos_epsilon();
 		}
 	}
 	bool isInteger() const noexcept
