@@ -114,7 +114,7 @@ void RunExperiment(void* data) {
         std::fprintf(stderr, "Scenario %d point %d out-of-bounds (%f,%f)\n", x, i, pos.x, pos.y);
       }
       if (i+1 != ie) {
-        xyLoc pos2 = thePath[i];
+        xyLoc pos2 = thePath[i+1];
         if (euclidean_dist(pos, pos2) < inx::MIN_SEGMENT_LENGTH - 1e-4) {
           std::fprintf(stderr, "Scenario %d segment %d too short (%f,%f)-(%f,%f)\n", x, i, pos.x, pos.y, pos2.x, pos2.y);
         }
