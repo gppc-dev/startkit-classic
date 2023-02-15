@@ -12,23 +12,21 @@
 #include "Entry.h"
 #include "validator/ValidatePath.hpp"
 
-using namespace std;
-
-string datafile, mapfile, scenfile, flag;
-const string index_dir = "index_data";
-vector<bool> mapData;
+std::string datafile, mapfile, scenfile, flag;
+const std::string index_dir = "index_data";
+std::vector<bool> mapData;
 int width, height;
 bool pre   = false;
 bool run   = false;
 bool check = false;
 
-void LoadMap(const char *fname, vector<bool> &map, int &width, int &height)
+void LoadMap(const char *fname, std::vector<bool> &map, int &width, int &height)
 {
   FILE *f;
-  f = fopen(fname, "r");
+  f = std::fopen(fname, "r");
   if (f)
   {
-    fscanf(f, "type octile\nheight %d\nwidth %d\nmap\n", &height, &width);
+    std::fscanf(f, "type octile\nheight %d\nwidth %d\nmap\n", &height, &width);
     map.resize(height*width);
     for (int y = 0; y < height; y++)
     {
@@ -36,30 +34,23 @@ void LoadMap(const char *fname, vector<bool> &map, int &width, int &height)
       {
         char c;
         do {
-          fscanf(f, "%c", &c);
-        } while (isspace(c));
+          std::fscanf(f, "%c", &c);
+        } while (std::isspace(c));
         map[y*width+x] = (c == '.' || c == 'G' || c == 'S');
       }
     }
-    fclose(f);
+    std::fclose(f);
   }
-}
-
-double octaile_dist(const xyLoc& a, const xyLoc& b) {
-  double dx = abs(b.x - a.x);
-  double dy = abs(b.y - a.y);
-  double res = min(dx, dy) * sqrt(2) + (dx + dy - 2 * min(dx, dy));
-  return res;
 }
 
 double euclidean_dist(const xyLoc& a, const xyLoc& b) {
   double dx = b.x - a.x;
   double dy = b.y - a.y;
-  double res = sqrt(dx*dx + dy*dy);
+  double res = std::sqrt(dx*dx + dy*dy);
   return res;
 }
 
-double GetPathLength(const vector<xyLoc>& path)
+double GetPathLength(const std::vector<xyLoc>& path)
 {
   double len = 0;
   for (int x = 0; x < (int)path.size()-1; x++)
@@ -68,7 +59,7 @@ double GetPathLength(const vector<xyLoc>& path)
 }
 
 // returns -1 if valid path, otherwise id of segment where invalidness was detetcted
-int ValidatePath(const vector<xyLoc>& thePath)
+int ValidatePath(const std::vector<xyLoc>& thePath)
 {
   return inx::ValidatePath(mapData, width, height, thePath);
 }
@@ -76,16 +67,16 @@ int ValidatePath(const vector<xyLoc>& thePath)
 void RunExperiment(void* data) {
   Timer t;
   ScenarioLoader scen(scenfile.c_str());
-  vector<xyLoc> thePath;
+  std::vector<xyLoc> thePath;
 
-  string resultfile = "result.csv";
-  ofstream fout(resultfile);
-  const string header = "map,scen,experiment_id,path_size,path_length,ref_length,time_cost,20steps_cost,max_step_time";
+  std::string resultfile = "result.csv";
+  std::ofstream fout(resultfile);
+  const std::string header = "map,scen,experiment_id,path_size,path_length,ref_length,time_cost,20steps_cost,max_step_time";
 
-  fout << header << endl;
+  fout << header << std::endl;
   for (int x = 0; x < scen.GetNumExperiments(); x++)
   {
-      xyLoc s, g;
+    xyLoc s, g;
     s.x = scen.GetNthExperiment(x).GetStartX();
     s.y = scen.GetNthExperiment(x).GetStartY();
     g.x = scen.GetNthExperiment(x).GetGoalX();
@@ -109,63 +100,77 @@ void RunExperiment(void* data) {
     double ref_len = scen.GetNthExperiment(x).GetDistance();
 
 
-    fout << setprecision(9) << fixed;
+    fout << std::setprecision(9) << std::fixed;
     fout << mapfile  << "," << scenfile       << ","
          << x        << "," << thePath.size() << ","
          << plen     << "," << ref_len        << ","
          << tcost.count() << "," << tcost20.count() << "," 
-         << max_step.count() << endl;
+         << max_step.count() << std::endl;
+    
+    // do basic check and print to stderr if problem
+    for (int i = 0, ie = static_cast<int>(thePath.size()); i < ie; ++i) {
+      xyLoc pos = thePath[i];
+      if (pos.x < -1e-4 || pos.x > (static_cast<double>(width) + 1e-4) || pos.y < -1e-4 || pos.y > (static_cast<double>(height) + 1e-4)) {
+        std::fprintf(stderr, "Scenario %d point %d out-of-bounds (%f,%f)\n", x, i, pos.x, pos.y);
+      }
+      if (i+1 != ie) {
+        xyLoc pos2 = thePath[i];
+        if (euclidean_dist(pos, pos2) < inx::MIN_SEGMENT_LENGTH - 1e-4) {
+          std::fprintf(stderr, "Scenario %d segment %d too short (%f,%f)-(%f,%f)\n", x, i, pos.x, pos.y, pos2.x, pos2.y);
+        }
+      }
+    }
 
     if (check) {
-      printf("%f %f %f %f", s.x, s.y, g.x, g.y);
+      std::printf("%f %f %f %f", s.x, s.y, g.x, g.y);
       int validness = ValidatePath(thePath);
       if (validness < 0) {
-        printf(" valid");
+        std::printf(" valid");
       } else {
-        printf(" invalid-%d", validness);
+        std::printf(" invalid-%d", validness);
       }
-      printf(" %d", static_cast<int>(thePath.size()));
+      std::printf(" %d", static_cast<int>(thePath.size()));
       for (const auto& it: thePath) {
-        printf(" %f %f", it.x, it.y);
+        std::printf(" %f %f", it.x, it.y);
       }
-      printf(" %.5f\n", plen);
+      std::printf(" %.5f\n", plen);
     }
   }
 }
 
 void print_help(char **argv) {
-  printf("Invalid Arguments\nUsage %s <flag> <map> <scenario>\n", argv[0]);
-  printf("Flags:\n");
-  printf("\t-full : Preprocess map and run scenario\n");
-  printf("\t-pre : Preprocess map\n");
-  printf("\t-run : Run scenario without preprocessing\n");
-  printf("\t-check: Run for validation\n");
+  std::printf("Invalid Arguments\nUsage %s <flag> <map> <scenario>\n", argv[0]);
+  std::printf("Flags:\n");
+  std::printf("\t-full : Preprocess map and run scenario\n");
+  std::printf("\t-pre : Preprocess map\n");
+  std::printf("\t-run : Run scenario without preprocessing\n");
+  std::printf("\t-check: Run for validation\n");
 }
 
 bool parse_argv(int argc, char **argv) {
   if (argc < 2) return false;
-  flag = string(argv[1]);
+  flag = std::string(argv[1]);
   if (flag== "-full") pre = run = true;
   else if (flag == "-pre") pre = true;
   else if (flag == "-run") run = true;
   else if (flag == "-check") run = check = true;
 
   if (argc < 3) return false;
-  mapfile = string(argv[2]);
+  mapfile = std::string(argv[2]);
 
   if (run) {
     if (argc < 4) return false;
-    scenfile = string(argv[3]);
+    scenfile = std::string(argv[3]);
   }
   return true;
 }
 
-string basename(const string& path) {
-  size_t l = path.find_last_of('/');
-  if (l == string::npos) l = 0;
+std::string basename(const std::string& path) {
+  std::size_t l = path.find_last_of('/');
+  if (l == std::string::npos) l = 0;
   else l += 1;
-  size_t r = path.find_last_of('.');
-  if (r == string::npos) r = path.size()-1;
+  std::size_t r = path.find_last_of('.');
+  if (r == std::string::npos) r = path.size()-1;
   return path.substr(l, r-l);
 }
 
@@ -173,12 +178,12 @@ int main(int argc, char **argv)
 {
 
   // redirect stdout to file
-  freopen("run.stdout", "w", stdout);
-  freopen("run.stderr", "w", stderr);
+  std::freopen("run.stdout", "w", stdout);
+  std::freopen("run.stderr", "w", stderr);
 
   if (!parse_argv(argc, argv)) {
     print_help(argv);
-    exit(1);
+    std::exit(1);
   }
 
   // in mapData, 1: traversable, 0: obstacle
@@ -194,10 +199,10 @@ int main(int argc, char **argv)
   void *reference = PrepareForSearch(mapData, width, height, datafile);
 
   char argument[256];
-  sprintf(argument, "pmap -x %d | tail -n 1 > run.info", getpid());
-  system(argument);
+  std::sprintf(argument, "pmap -x %d | tail -n 1 > run.info", getpid());
+  std::system(argument);
   RunExperiment(reference);
-  sprintf(argument, "pmap -x %d | tail -n 1 >> run.info", getpid());
-  system(argument);
+  std::sprintf(argument, "pmap -x %d | tail -n 1 >> run.info", getpid());
+  std::system(argument);
   return 0;
 }
