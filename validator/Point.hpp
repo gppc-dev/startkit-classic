@@ -3,6 +3,8 @@
 
 #include "inx.hpp"
 #include "frac.hpp"
+#include <numeric>
+
 
 namespace inx {
 

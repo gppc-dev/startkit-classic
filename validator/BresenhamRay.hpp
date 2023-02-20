@@ -5,6 +5,7 @@
 #include "Box.hpp"
 #include "frac.hpp"
 #include "bit_table.hpp"
+#include <array>
 
 namespace inx {
 
