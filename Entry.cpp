@@ -19,7 +19,7 @@
  * @param[in] height Give the map's height
  * @param[in] filename The filename you write the preprocessing data to.  Open in write mode.
  */
-void PreprocessMap(vector<bool> &bits, int width, int height, const string filename) {}
+void PreprocessMap(const std::vector<bool> &bits, int width, int height, const std::string &filename) {}
 
 /**
  * User code used to setup search before queries.  Can also load pre-processing data from file to speed load.
@@ -38,7 +38,7 @@ void PreprocessMap(vector<bool> &bits, int width, int height, const string filen
  * @param[in] filename The filename you write the preprocessing data to.  Open in write mode.
  * @returns Pointer to data-structure used for search.  Memory should be stored on heap, not stack.
  */
-void *PrepareForSearch(vector<bool> &bits, int width, int height, const string filename) {
+void *PrepareForSearch(const vector<bool> &bits, int width, int height, const string &filename) {
   ThetaStar* astar = new ThetaStar(&bits, width, height);
   return astar;
 }
@@ -62,7 +62,7 @@ void *PrepareForSearch(vector<bool> &bits, int width, int height, const string f
  * @returns `true` if search is complete, including if no-path-exists.  `false` if search only partially completed.
  *          if `false` then `GetPath` will be called again until search is complete.
  */
-bool GetPath(void *data, xyLoc s, xyLoc g, vector<xyLoc> &path) {
+bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path) {
 
   ThetaStar* astar = (ThetaStar*)(data);
   int16_t w = astar->width;
@@ -70,9 +70,9 @@ bool GetPath(void *data, xyLoc s, xyLoc g, vector<xyLoc> &path) {
   vector<int> pa(astar->bits->size(), -1);
   double d = astar->run(s.x, s.y, g.x, g.y, pa);
   if (d > 0) {
-    int16_t x = g.x, y = g.y;
+    int16_t x = static_cast<int16_t>(g.x), y = static_cast<int16_t>(g.y);
     while (true) {
-      path.push_back({x, y});
+      path.push_back({static_cast<double>(x), static_cast<double>(y)});
       if (x == s.x && y == s.y) break;
       int cid = y * w + x;
       x = pa[cid] % w;
@@ -84,8 +84,8 @@ bool GetPath(void *data, xyLoc s, xyLoc g, vector<xyLoc> &path) {
 }
 
 /**
- * The algorithm name.  Please update string and ensure name is immutable.
+ * The algorithm name.  Please update std::string and ensure name is immutable.
  * 
  * @returns the name of the algorithm
  */
-const string GetName() { return "example-Theta*"; }
+std::string GetName() { return "example-Theta*"; }

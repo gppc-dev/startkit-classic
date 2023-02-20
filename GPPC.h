@@ -3,7 +3,7 @@
 
 namespace GPPC {
   struct xyLoc {
-    int16_t x;
-    int16_t y;
+    double x;
+    double y;
   };
 }

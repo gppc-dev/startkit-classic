@@ -49,25 +49,25 @@ float Timer::getCPUSpeed()
 	if (answer != -1)
 		return answer;
 	
-	f = fopen("/proc/cpuinfo", "r");
+	f = std::fopen("/proc/cpuinfo", "r");
 	if (f)
 	{
 		while (!feof(f))
 		{
 			char entry[1024];
 			char temp[1024];
-			fgets(entry, 1024, f);
-			if (strstr(entry, "cpu MHz"))
+			std::fgets(entry, 1024, f);
+			if (std::strstr(entry, "cpu MHz"))
 			{
 				//                              cpu MHz         : 997.399
 				float answer;
-				sscanf(entry, "%[^0-9:] : %f", temp, &answer);
+				std::sscanf(entry, "%[^0-9:] : %f", temp, &answer);
 				//printf("Read CPU speed: %1.2f\n", answer);
-				fclose(f);
+				std::fclose(f);
 				return answer;
 			}
 		}
-		fclose(f);
+		std::fclose(f);
 	}
 	return 0;
 }

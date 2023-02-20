@@ -1,6 +1,6 @@
 CXX       = g++
-CXXFLAGS   = -W -Wall -O3 -std=c++14
-DEVFLAGS = -W -Wall -ggdb -O0 -std=c++14
+CXXFLAGS   = -W -Wall -O3 -std=c++17
+DEVFLAGS = -W -Wall -ggdb -O0 -std=c++17
 EXEC     = run
 
 all:

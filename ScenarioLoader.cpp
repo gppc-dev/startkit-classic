@@ -18,7 +18,7 @@ using std::ofstream;
  */
 ScenarioLoader::ScenarioLoader(const char* fname)
 {
-	strncpy(scenName, fname, 1024);
+	strncpy(scenName, fname, 1000);
   ifstream sfile(fname,std::ios::in);
   
   float ver;

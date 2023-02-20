@@ -4,11 +4,11 @@
 
 // include common used class in GPPC
 #include "GPPC.h"
-using namespace std;
+
 typedef GPPC::xyLoc xyLoc;
 
-void PreprocessMap(vector<bool> &bits, int width, int height, const string filename);
-void *PrepareForSearch(vector<bool> &bits, int width, int height, const string filename);
+void PreprocessMap(const std::vector<bool> &bits, int width, int height, const std::string &filename);
+void *PrepareForSearch(const std::vector<bool> &bits, int width, int height, const std::string &filename);
 
 
 /*
@@ -23,6 +23,6 @@ e.g.:
   GetPath(data, v2, g, path); // get the entire <s,v1,v2,g>
   
 */
-bool GetPath(void *data, xyLoc s, xyLoc g, vector<xyLoc> &path);
+bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path);
 
-const string GetName();
+std::string GetName();
