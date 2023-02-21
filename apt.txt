@@ -1,2 +1,6 @@
-libmetis-dev
+make
+cmake
+build-essential
 clang
+
+
