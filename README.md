@@ -34,7 +34,7 @@ For those who using c++ (most of participants), you submission must include foll
 | `Entry.cpp`           | Implementations                                                 | yes        |
 | `compile.sh`          | Compile your code to executable `run`                           | yes        |
 | `apt.txt`             | Define dependency, will be used by server to build docker image | yes        |
-| `Dockerfile`          | Define docker image, will be used by server                     | no         |
+
 
 besides, you will have following generated files
 
@@ -52,6 +52,11 @@ We provide `Theta*` in c++ as an example.
 For those who using other languages, you may not need to include `*.cpp` and `*.h` files in above table, but others are still required.
 Notice that `run` is a untracked file by default (see in `.gitignore`), if you put code in this file, make sure you also modify the `.gitignore`.
 
+## Your Implementation
+* Implement `PreprocessMap`, `PrepareForSearch`, and `GetPath` functions in `Entry.cpp`. See examples and detailed documentations in `Entry.cpp`.
+* Specify your dependency packages in `apt.txt`. The packages must be avaliable for installation through `apt-get` on Ubuntu 22.
+* Modify `compile.sh` and make sure your code can be compiled by execuating this script.
+  
 ## Run the Program
 * `./run -pre <map> none` Run in preprocessing mode. The program should preprocess the given map and store the preprocessing data under `index_data/`.
 
@@ -102,7 +107,7 @@ For those who **want to build local testing workflow** or **not using c/c++**, t
 8. Submit final result.
 
 
-## Test Your Implementation in a Docker Environment
+# Test Your Implementation in a Docker Environment
 
 * Install latest docker release on your machine [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/).
 
