@@ -2,9 +2,6 @@
 \begin{document}
 \begin{tikzpicture}
 
-\pgfdeclarelayer{background}
-\pgfsetlayers{background,main}
-
 \matrix[square matrix,column 1/.style={}](m){
       &   &   &   \\
       &   &   &   \\
@@ -14,15 +11,17 @@
 
 \node[fill=black, inner sep=0pt, fit=(m-2-3)(m-2-3)] {};
 \node[fill=black, inner sep=0pt, fit=(m-3-2)(m-3-2)] {};
-\node[fill=black, inner sep=0pt, fit=(m-1-3)(m-1-3)] {};
 
 \tikzstyle{p}=[circle,fill=blue!40, inner sep=0pt, minimum size=4mm]
 
-\node[p] at (m-2-2.north west) {$\mathbf{a}$};
+\draw[-,line width=1.5pt, blue ] (m-1-2.center) -- (m-3-3.north west) -- (m-2-1.center);
+\draw[-,line width=1.5pt, red ] (m-1-1.center) -- (m-4-4.center);
 
-\begin{pgfonlayer}{background}
-\fill[green!50] (m-1-1.north west) -- (m-1-2.north east) -- (m-2-2.south east) -- (m-2-2.south west) -- (m-4-1.south east) -- (m-4-1.south west) -- cycle;
-\end{pgfonlayer}
+\node[p] at (m-3-3.north west) {$\mathbf{x}$};
+\node[p] at (m-1-2.center) {$\mathbf{a}$};
+\node[p] at (m-2-1.center) {$\mathbf{b}$};
+\node[p] at (m-1-1.center) {$\mathbf{c}$};
+\node[p] at (m-4-4.center) {$\mathbf{d}$};
 
 \end{tikzpicture}
 \end{document}
