@@ -76,19 +76,26 @@ The following examples shows the co-visible green region, where `a` can see any 
 Double-corners have special rules on how paths may visit it.
 
 For any coordinates `p` that is not `s` or `t`, you are allows to visit them but not cut through the corner.
-Below shows an example with the blue path `a-x-b` being valid while red path `c-x-d` or `c-d` is invalid:
+Below shows an example with the blue path `<a-x-b>` being valid while red path `<c-x-d>` or `<c-d>` is invalid:
   <p align="center">
     <img src="figs/invalid_segments_cut1.png" height="200" width="200"> <img src="figs/invalid_segments_cut2.png" height="200" width="200">
   </p>
 
 ### Starts and Targets on Double Corners
-If `s` or `t` lies directly on the double-corner, they are only able to enter/leave from a specific direction, examples of valid/invalid shown below:
+
+If `s` or `t` lies directly on the double-corner, they are only able to enter/leave from a specific direction, examples of valid/invalid shown below from start:
   <p align="center">
-    <img src="figs/invalid_segments_start.png" height="200" width="200"> <img src="figs/invalid_segments_target.png" height="200" width="200">
+    <img src="figs/invalid_segments_start.png" height="200" width="200"> <img src="figs/invalid_segments_start2.png" height="200" width="200">
   </p>
 
 We see with the first figure, you can only leave in the south-eastern quadrant of `s` (`<s,a,t>`), while the path leaving north-eastern quadrant (`<s,b,t>`)
 is considered an invalid path.
+
 For the second figure, we have the alternate double-corner, but since this point can never be given as a query point, we simply disallow any `s` or `t` points
 of a path being there, thus will always be an invalid path.
+
+The target point similarly must approach from the south-eastern quadrant, example valid/invalid paths as shown below:
+  <p align="center">
+    <img src="figs/invalid_segments_target.png" height="200" width="200">
+  </p>
 
