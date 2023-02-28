@@ -81,6 +81,7 @@ Below shows an example with the blue path `a-x-b` being valid while red path `c-
     <img src="figs/invalid_segments_cut1.png" height="200" width="200"> <img src="figs/invalid_segments_cut2.png" height="200" width="200">
   </p>
 
+### Starts and Targets on Double Corners
 If `s` or `t` lies directly on the double-corner, they are only able to enter/leave from a specific direction, examples of valid/invalid shown below:
   <p align="center">
     <img src="figs/invalid_segments_start.png" height="200" width="200"> <img src="figs/invalid_segments_target.png" height="200" width="200">
