@@ -1,7 +1,5 @@
-#include <algorithm>
-#include <map>
-#include "Astar.h"
 #include "Entry.h"
+#include "Astar.h"
 
 
 /**
@@ -64,7 +62,6 @@ void *PrepareForSearch(const std::vector<bool> &bits, int width, int height, con
  */
 bool GetPath(void *data, xyLoc s, xyLoc g, std::vector<xyLoc> &path) {
   Astar* astar = (Astar*)(data);
-  int16_t w = astar->width;
   astar->get_path(s, g, path);
   return true;
 }
