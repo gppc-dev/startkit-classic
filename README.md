@@ -65,6 +65,14 @@ Notice that `run` is an untracked file by default (see in `.gitignore`), if you 
 * `./run -check <map> <scen>` Run in validation mode. The output will be validated. Each entry of the `run.stdout` will be marked as `valid` or `invalid-i`, where `i` indicate which segment of the path is invalid.
 * `./run -run <map> <scen>` Run in benchmark mode. The benchmark results are written to `result.csv`.
 
+## Customise Program Runtime
+
+Environmental variables are defined to enable features not strictly required for development.
+They are listed below:
+
+* `GPPC_REDIRECT_OUTPUT`: redirects `stdout`/`stderr` to files, as detailed in I/O Setup section.
+* `GPPC_MEMORY_TRACK`: prints memory usage into `run.info` file, available on Linux only.
+
 # Details on the server side
 
 For those who **want to build local testing workflow** or **not using c/c++**, this section might be helpful.

@@ -25,8 +25,8 @@ SOFTWARE.
 #include <numeric>
 #include <algorithm>
 #include <string>
-#include <unistd.h>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -34,6 +34,15 @@ SOFTWARE.
 #include "Timer.h"
 #include "Entry.h"
 #include "validator/ValidatePath.hpp"
+
+#if __linux__
+#define GPPC_MEMORY_RECORD
+#endif
+
+#ifdef GPPC_MEMORY_RECORD
+// track memory to output, only in linux
+#include <unistd.h>
+#endif
 
 std::string datafile, mapfile, scenfile, flag;
 const std::string index_dir = "index_data";
@@ -194,9 +203,12 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  // redirect stdout to file
-  std::freopen("run.stdout", "w", stdout);
-  std::freopen("run.stderr", "w", stderr);
+  bool redirect_output = std::getenv("GPPC_REDIRECT_OUTPUT") != nullptr;
+  if (redirect_output) {
+    // redirect stdout to file
+    std::freopen("run.stdout", "w", stdout);
+    std::freopen("run.stderr", "w", stderr);
+  }
 
   // in mapData, 1: traversable, 0: obstacle
   LoadMap(mapfile.c_str(), mapData, width, height);
@@ -210,11 +222,20 @@ int main(int argc, char **argv)
 
   void *reference = PrepareForSearch(mapData, width, height, datafile);
 
+#ifdef GPPC_MEMORY_RECORD
+  bool memory_track = std::getenv("GPPC_MEMORY_TRACK") != nullptr;
   char argument[256];
-  std::sprintf(argument, "pmap -x %d | tail -n 1 > run.info", getpid());
-  std::system(argument);
+  if (memory_track) {
+    std::sprintf(argument, "pmap -x %d | tail -n 1 > run.info", getpid());
+    std::system(argument);
+  }
+#endif
   RunExperiment(reference);
-  std::sprintf(argument, "pmap -x %d | tail -n 1 >> run.info", getpid());
-  std::system(argument);
+#ifdef GPPC_MEMORY_RECORD
+  if (memory_track) {
+    std::sprintf(argument, "pmap -x %d | tail -n 1 >> run.info", getpid());
+    std::system(argument);
+  }
+#endif
   return 0;
 }
